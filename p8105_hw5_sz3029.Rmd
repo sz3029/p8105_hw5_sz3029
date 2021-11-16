@@ -64,7 +64,25 @@ homicides <-
 
 There is a data-entry issue for the city Tulsa. This needs to be fixed in the raw dataset so we just ignore it for now. 
 
-Let's focus on Baltimore, MD.
+Summarize within cities to obtain the total number of homicides and the number of unsolved homicides
+```{r}
+homicides %>%
+  group_by(city_state) %>%
+  summarise(
+    unsolved = sum(resolution == "unsolved"),
+    total = n()
+  ) #%>%
+  #mutate(
+    #test_results = map2(unsolved, n, prop.test),
+    #tidy_results = map(test_results, broom::tidy)
+  #) %>%
+  #select(city_state, tidy_results) %>%
+  #unnest(tidy_results) %>%
+  #select(city_state, estimate, starts_with("conf"))
+```
+
+
+### Let's focus on Baltimore, MD.
 
 ```{r}
 baltimore_df <-
@@ -89,7 +107,7 @@ baltimore_test %>%
   broom::tidy()
 ```
 
-Let's try to iterate across cities!
+### Let's try to iterate across cities!
 
 First off, write a function and test on sample cities.
 
@@ -119,7 +137,7 @@ homicides %>%
   prop_test_function()
 ```
 
-Now, let's iterate across all cities
+### Now, let's iterate across all cities
 
 ```{r}
 results_df <- 
@@ -134,6 +152,30 @@ results_df <-
   select(city_state, estimate, starts_with("conf"))
 ```
 
+### Try to make a plot showing estimates and confidence intervals.
+
+```{r}
+results_df %>%
+  mutate(city_state = fct_reorder(city_state, estimate)) %>%
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+## Problem 2
+
+```{r zip_data}
+tibble(
+  files = list.files("data/zip_data/")
+)
+```
+
+## Problem 3
+
+```{r}
+
+```
 
 
 
