@@ -44,4 +44,97 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 ## Problem 1
 
+### Describe the raw data
+```{r p1_1, message=FALSE}
+homicides <- 
+  read_csv("data/homicide-data.csv", na = c("", "Unkown")) %>%
+  # create a citystate variable
+  mutate(
+    city_state = str_c(city, state),
+    resolution = case_when(
+      disposition == "Closed without arrest" ~ "unsolved",
+      disposition == "Open/No arrest"        ~ "unsolved",
+      disposition == "Closed by arrest"     ~ "solved"
+      )
+    ) %>%
+  relocate(city_state) %>%
+  # exclude the wrong issue
+  filter(city_state != "TulsaAL")
+```
+
+There is a data-entry issue for the city Tulsa. This needs to be fixed in the raw dataset so we just ignore it for now. 
+
+Let's focus on Baltimore, MD.
+
+```{r}
+baltimore_df <-
+  homicides %>%
+  filter(city_state == "BaltimoreMD")
+
+baltimore_summary <-
+  baltimore_df %>%
+    summarize(
+      unsolved = sum(resolution == "unsolved"),
+      n = n()
+    )
+
+baltimore_test <-
+  prop.test(
+    x = baltimore_summary %>% pull(unsolved),
+    n = baltimore_summary %>% pull(n)
+  )
+
+# organize the test output as dataframe
+baltimore_test %>%
+  broom::tidy()
+```
+
+Let's try to iterate across cities!
+
+First off, write a function and test on sample cities.
+
+```{r}
+prop_test_function = function(city_df) {
+  
+  city_summary <-
+    city_df %>%
+      summarize(
+        unsolved = sum(resolution == "unsolved"),
+        n = n()
+    )
+
+  city_test <-
+    prop.test(
+      x = city_summary %>% pull(unsolved),
+      n = city_summary %>% pull(n)
+    )
+  
+  return(city_test)
+}
+
+prop_test_function(baltimore_df)
+
+homicides %>%
+  filter(city_state == "AlbuquerqueNM") %>%
+  prop_test_function()
+```
+
+Now, let's iterate across all cities
+
+```{r}
+results_df <- 
+  homicides %>%
+  nest(data = uid:resolution) %>%
+  mutate(
+    test_results = map(data, prop_test_function),
+    tidy_results = map(test_results, broom::tidy)
+  ) %>%
+  select(city_state, tidy_results) %>%
+  unnest(tidy_results) %>%
+  select(city_state, estimate, starts_with("conf"))
+```
+
+
+
+
 
