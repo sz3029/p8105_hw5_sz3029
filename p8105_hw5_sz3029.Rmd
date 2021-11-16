@@ -165,6 +165,7 @@ results_df %>%
 
 ## Problem 2
 
+Start with a dataframe containing all file names via the `list.files`
 ```{r zip_data}
 tibble(
   files = list.files("data/zip_data/")
@@ -174,9 +175,26 @@ tibble(
 ## Problem 3
 
 ```{r}
+set.seed(10)
 
+iris_with_missing = iris %>% 
+  map_df(~replace(.x, sample(1:150, 20), NA)) %>%
+  mutate(Species = as.character(Species))
 ```
 
+Write a function for missing values.
 
+```{r}
+fill_in_missing = function(vector) {
+  if (is.numeric()) {
+    
+  }
+  
+  if (is.character()) {
+    
+  }
+}
+```
 
+Apply the function column by column
 
