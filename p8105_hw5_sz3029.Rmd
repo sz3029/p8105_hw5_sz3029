@@ -228,6 +228,7 @@ zip_tidy %>%
   ) + 
   scale_colour_hue()
 ```
+
 From the spaghetti plot we observe that both arms have similar range of observations at the start of week 1, but the experimental group ends up with higher observation values compared with the control group at the end of the study i.e. at week 8.
 
 ## Problem 3
